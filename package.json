@@ -1,0 +1,11 @@
+{
+  "name": "SecSSE",
+  "description": "Expose security functionality through SSE",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "grpc": "^1.0.0",
+    "grpcc": "^0.0.6",
+    "grpcli": "^0.7.5"
+  }
+}
