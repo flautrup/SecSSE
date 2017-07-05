@@ -6,7 +6,23 @@ syntax="proto3";
 /**
  * A gRPC definition for the Qlik engine extension protocol.
  */
-package qlik.sse;
+package qlik_sse;
+
+/**
+ * The communication service provided between the Qlik engine and the plugin.
+ */
+service Connector
+{
+    /// A handshake call for the Qlik engine to retrieve the capability of the plugin.
+    rpc GetCapabilities (Empty) returns (Capabilities) {}
+
+    /// Requests a function to be executed as specified in the header.
+    rpc ExecuteFunction (stream BundledRows) returns (stream BundledRows) {}
+
+    /// Requests a script to be evaluated as specified in the header.
+    rpc EvaluateScript (stream BundledRows) returns (stream BundledRows) {}
+    
+}
 
 /**
  * Enable protobuf arena allocations in C++.
@@ -14,23 +30,11 @@ package qlik.sse;
  */
 option cc_enable_arenas = true;
 
-/**
- * Data types of the parameters and return values.
- */
-enum DataType {
-    STRING = 0;     /// Contains only string.
-    NUMERIC = 1;    /// Contains only double.
-    DUAL = 2;       /// Contains both a string and a double.
-}
 
 /**
  * Types of functions (determined by their return values).
  */
-enum FunctionType {
-    SCALAR = 0;         /// The return value is a scalar per row.
-    AGGREGATION = 1;    /// All rows are aggregated into a single scalar.
-    TENSOR = 2;         /// Multiple rows in, multiple rows out.
-}
+
 
 /**
  * An empty message used when nothing is to be passed in a call.
@@ -41,6 +45,11 @@ message Empty {}
  * Parameter definition for functions and script calls.
  */
 message Parameter {
+    enum DataType {
+        STRING = 0;     /// Contains only string.
+        NUMERIC = 1;    /// Contains only double.
+        DUAL = 2;       /// Contains both a string and a double.
+    }
     DataType dataType = 1;  /// The data type of the parameter.
     string name = 2;        /// The name of the parameter.
 }
@@ -49,6 +58,16 @@ message Parameter {
  * The definition of a function, which informs the Qlik engine how to use it.
  */
 message FunctionDefinition {
+    enum DataType {
+        STRING = 0;     /// Contains only string.
+        NUMERIC = 1;    /// Contains only double.
+        DUAL = 2;       /// Contains both a string and a double.
+    }
+    enum FunctionType {
+       SCALAR = 0;         /// The return value is a scalar per row.
+       AGGREGATION = 1;    /// All rows are aggregated into a single scalar.
+        TENSOR = 2;         /// Multiple rows in, multiple rows out.
+    }
     string name = 1;                /// The name of the function.
     FunctionType functionType = 2;  /// The type of the function.
     DataType returnType = 3;        /// The return type of the function.
@@ -93,7 +112,18 @@ message BundledRows {
  */
 message ScriptRequestHeader {
     string script = 1;              /// The script to be executed.
-    FunctionType functionType = 2;  /// The function type of the script evaluation: scalar, aggregation or tensor.
+    enum FunctionType {
+       SCALAR = 0;         /// The return value is a scalar per row.
+        AGGREGATION = 1;    /// All rows are aggregated into a single scalar.
+        TENSOR = 2;         /// Multiple rows in, multiple rows out.
+    }
+    FunctionType functionType = 2;
+    enum DataType {
+        STRING = 0;     /// Contains only string.
+        NUMERIC = 1;    /// Contains only double.
+        DUAL = 2;       /// Contains both a string and a double.
+    }  
+    /// The function type of the script evaluation: scalar, aggregation or tensor.
     DataType returnType = 3;        /// The return type from the script evaluation: numeric, string or both.
     repeated Parameter params = 4;  /// The parameters names and types passed to the script.
 }
@@ -115,17 +145,3 @@ message CommonRequestHeader {
     int64 cardinality = 3;  /// The cardinality of the parameters.
 }
 
-/**
- * The communication service provided between the Qlik engine and the plugin.
- */
-service Connector
-{
-    /// A handshake call for the Qlik engine to retrieve the capability of the plugin.
-    rpc GetCapabilities (Empty) returns (Capabilities) {}
-
-    /// Requests a function to be executed as specified in the header.
-    rpc ExecuteFunction (stream BundledRows) returns (stream BundledRows) {}
-    
-    /// Requests a script to be evaluated as specified in the header.
-    rpc EvaluateScript (stream BundledRows) returns (stream BundledRows) {}
-}

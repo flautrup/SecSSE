@@ -3,35 +3,41 @@ const grpc = require('grpc');
 const proto = grpc.load('proto/ServerSideExtension.proto');
 const server = new grpc.Server();
 
-const getCapabilities = (call, callback) => {
+const GetCapabilities = (call, callback) => {
     var capabilities = {
-        allowScript: true,
+        allowScript: false,
         pluginIdentifier: 'secSSE',
         pluginVersion: 'v0.0.1',
         functions: [{
             functionId: 0,
             name: 'HelloWorld',
-            functionType: 2,
-            returnType: 0,
-            params: {
-                name:'str1',
-                dataType: 0
-            }
+            functionType: 0,
+            returnType: 0
         }]
     };
 
     callback(null,capabilities);
 }
 
-const executeFunction = (test) => {
+const ExecuteFunction = (call, callback) => {
+    return "Test";
+}
 
+const EvaluateScript = (call, callback) => {
+    return "Test";
+}
+
+
+const helloWorld = () => {
+    return "helloWorld";
 }
 
 
 //define the callable methods that correspond to the methods defined in the protofile
-server.addProtoService(proto.qlik_sse.Connector.service, {
-    GetCapabilities: getCapabilities,
-    ExecuteFunction: executeFunction
+server.addService(proto.qlik.sse.Connector.service, {
+    getCapabilities: GetCapabilities,
+    executeFunction: ExecuteFunction,
+    evaluateScript: EvaluateScript
 });
 
 //Specify the IP and and port to start the grpc Server, no SSL in test environment
