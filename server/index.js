@@ -1,12 +1,20 @@
 const grpc = require('grpc');
-var protobuf = require("protobufjs");
+const protobuf = require("protobufjs");
+const crypto = require('crypto');
+
 // load proto model to be able to decode header to determine function called
-var builder=protobuf.loadProtoFile('proto/ServerSideExtension.proto');
-var protoModel=builder.build("qlik.sse");
+var builder = protobuf.loadProtoFile('proto/ServerSideExtension.proto');
+var protoModel = builder.build("qlik.sse");
 
 // load proto for grpc service
 const proto = grpc.load('proto/ServerSideExtension.proto');
 const server = new grpc.Server();
+
+//Config
+const config = {
+    algorithm: 'aes256',
+    key: 'Qlik'
+}
 
 // send back capabilties to Qlik Sense 
 const GetCapabilities = (call, callback) => {
@@ -17,6 +25,26 @@ const GetCapabilities = (call, callback) => {
         functions: [{
                 functionId: 0,
                 name: 'HelloWorld',
+                functionType: proto.qlik.sse.FunctionType.SCALAR,
+                returnType: proto.qlik.sse.DataType.STRING,
+                params: [{
+                    name: 'str1',
+                    dataType: proto.qlik.sse.DataType.STRING
+                }]
+            },
+            {
+                functionId: 1,
+                name: 'AESEncryptData',
+                functionType: proto.qlik.sse.FunctionType.SCALAR,
+                returnType: proto.qlik.sse.DataType.STRING,
+                params: [{
+                    name: 'str1',
+                    dataType: proto.qlik.sse.DataType.STRING
+                }]
+            },
+            {
+                functionId: 2,
+                name: 'AESDecryptData',
                 functionType: proto.qlik.sse.FunctionType.SCALAR,
                 returnType: proto.qlik.sse.DataType.STRING,
                 params: [{
@@ -36,20 +64,20 @@ const ExecuteFunction = (call) => {
     var functionRequestHeader = requestHeaders['qlik-functionrequestheader-bin'];
     var commonRequestHeader = requestHeaders['qlik-commonrequestheader-bin'];
 
-    var header=protoModel.FunctionRequestHeader.decode(functionRequestHeader);
+    var header = protoModel.FunctionRequestHeader.decode(functionRequestHeader);
 
     call.on('data', function (rowData) {
         // choose function based on header. 
         //Improvement to drive this from definition
-        if(header.functionId==0) {
-            rowData=helloWorld(rowData);
-        } else if (header.functionId==1) {
-            rowData=aesencryptData(rowData);
-        } else if (header.functionId==2) {
-            rowData=aesDecryptData(rowData);
-        } else if (header.functionId==3) {
-            rowData=fpeEncryptData(rowData);
-        } else if (header.functionId==4) {
+        if (header.functionId == 0) {
+            rowData = helloWorld(rowData);
+        } else if (header.functionId == 1) {
+            rowData = aesEncryptData(rowData);
+        } else if (header.functionId == 2) {
+            rowData = aesDecryptData(rowData);
+        } else if (header.functionId == 3) {
+            rowData = fpeEncryptData(rowData);
+        } else if (header.functionId == 4) {
             rowData.fpeDecryptData(rowData);
         }
         call.write(rowData);
@@ -63,15 +91,40 @@ const EvaluateScript = (call, callback) => {
     return "Test";
 }
 
-
+//functions part of the library that can be called from Qlik Sense
 const helloWorld = (rowData) => {
-    for(count=0;  count < rowData.rows.length; count++) {
-         rowData.rows[count].duals[0].strData = 'Hello World';
-         rowData.rows[count].duals[0].numData = 1;
+    for (count = 0; count < rowData.rows.length; count++) {
+        rowData.rows[count].duals[0].strData = 'Hello World';
+        rowData.rows[count].duals[0].numData = 0;
     }
     return rowData;
 }
 
+const aesEncryptData = (rowData) => {
+    const cipher = crypto.createCipher(config.algorithm, config.key);
+    for (count = 0; count < rowData.rows.length; count++) {
+        let encrypted = cipher.update(rowData.rows[count].duals[0].strData, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        //console.log(encrypted);
+
+        rowData.rows[count].duals[0].strData = encrypted;
+        rowData.rows[count].duals[0].numData = 0;
+    }
+    return rowData;
+}
+
+const aesDecryptData = (rowData) => {
+    const decipher = crypto.createDecipher(config.algorithm, config.key);
+    for (count = 0; count < rowData.rows.length; count++) {
+        let decrypted = decipher.update(rowData.rows[count].duals[0].strData, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        //console.log(decrypted);
+
+        rowData.rows[count].duals[0].strData = decrypted;
+        rowData.rows[count].duals[0].numData = 0;
+    }
+    return rowData;
+}
 
 //define the callable methods that correspond to the methods defined in the protofile
 server.addService(proto.qlik.sse.Connector.service, {
