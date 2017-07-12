@@ -6,6 +6,7 @@
   "dependencies": {
     "grpc": "latest",
     "grpcc": "^0.0.6",
-    "grpcli": "^0.7.5"
+    "grpcli": "^0.7.5",
+    "node-fpe": "^1.0.0"
   }
 }

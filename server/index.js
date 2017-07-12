@@ -1,6 +1,8 @@
+//Load modules
 const grpc = require('grpc');
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
+const fpeCrypto = require('node-fpe')
 
 // load proto model to be able to decode header to determine function called
 var builder = protobuf.loadProtoFile('proto/ServerSideExtension.proto');
@@ -10,10 +12,11 @@ var protoModel = builder.build("qlik.sse");
 const proto = grpc.load('proto/ServerSideExtension.proto');
 const server = new grpc.Server();
 
-//Config
+//Config encryption (Key should be exchanged)
 const config = {
     algorithm: 'aes256',
-    key: 'Qlik'
+    key: 'Qlik',
+    domain: ['0','1','2','3','4','5','6','7','8','9']
 }
 
 // send back capabilties to Qlik Sense 
@@ -51,6 +54,26 @@ const GetCapabilities = (call, callback) => {
                     name: 'str1',
                     dataType: proto.qlik.sse.DataType.STRING
                 }]
+            },
+            {
+                functionId: 3,
+                name: 'FPEEncryptData',
+                functionType: proto.qlik.sse.FunctionType.SCALAR,
+                returnType: proto.qlik.sse.DataType.STRING,
+                params: [{
+                    name: 'str1',
+                    dataType: proto.qlik.sse.DataType.STRING
+                }]
+            },
+            {
+                functionId: 4,
+                name: 'FPEDecryptData',
+                functionType: proto.qlik.sse.FunctionType.SCALAR,
+                returnType: proto.qlik.sse.DataType.STRING,
+                params: [{
+                    name: 'str1',
+                    dataType: proto.qlik.sse.DataType.STRING
+                }]
             }
         ]
     };
@@ -78,7 +101,7 @@ const ExecuteFunction = (call) => {
         } else if (header.functionId == 3) {
             rowData = fpeEncryptData(rowData);
         } else if (header.functionId == 4) {
-            rowData.fpeDecryptData(rowData);
+            rowData = fpeDecryptData(rowData);
         }
         call.write(rowData);
     });
@@ -100,8 +123,9 @@ const helloWorld = (rowData) => {
     return rowData;
 }
 
+//AES encryption/decryption
 const aesEncryptData = (rowData) => {
-    const cipher = crypto.createCipher(config.algorithm, config.key);
+   const cipher = crypto.createCipher(config.algorithm, config.key);
     for (count = 0; count < rowData.rows.length; count++) {
         let encrypted = cipher.update(rowData.rows[count].duals[0].strData, 'utf8', 'hex');
         encrypted += cipher.final('hex');
@@ -123,6 +147,28 @@ const aesDecryptData = (rowData) => {
         rowData.rows[count].duals[0].strData = decrypted;
         rowData.rows[count].duals[0].numData = 0;
     }
+    return rowData;
+}
+
+//FPE encryption/decryption
+const fpeEncryptData = (rowData) => {
+    const fpeCipher = fpeCrypto({password: config.key, domain: config.domain});
+    for (count = 0; count < rowData.rows.length; count++) {
+        
+        rowData.rows[count].duals[0].strData = fpeCipher.encrypt(rowData.rows[count].duals[0].strData);
+        rowData.rows[count].duals[0].numData = 0;
+    }
+    return rowData;
+}
+
+const fpeDecryptData = (rowData) => {
+    const fpeCipher = fpeCrypto({password: config.key, domain: config.domain});
+    for (count = 0; count < rowData.rows.length; count++) {
+        
+        rowData.rows[count].duals[0].strData = fpeCipher.decrypt(rowData.rows[count].duals[0].strData);
+        rowData.rows[count].duals[0].numData = 0;
+    }
+    
     return rowData;
 }
 
