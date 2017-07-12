@@ -2,7 +2,9 @@
 const grpc = require('grpc');
 const protobuf = require("protobufjs");
 const crypto = require('crypto');
-const fpeCrypto = require('node-fpe')
+const fpeCrypto = require('node-fpe');
+var config = require('../config.js');
+var capabilities = require('./capabilities.js')
 
 // load proto model to be able to decode header to determine function called
 var builder = protobuf.loadProtoFile('proto/ServerSideExtension.proto');
@@ -12,72 +14,9 @@ var protoModel = builder.build("qlik.sse");
 const proto = grpc.load('proto/ServerSideExtension.proto');
 const server = new grpc.Server();
 
-//Config encryption (Key should be exchanged)
-const config = {
-    algorithm: 'aes256',
-    key: 'Qlik',
-    domain: ['0','1','2','3','4','5','6','7','8','9']
-}
 
 // send back capabilties to Qlik Sense 
 const GetCapabilities = (call, callback) => {
-    var capabilities = {
-        allowScript: false,
-        pluginIdentifier: 'secSSE',
-        pluginVersion: 'v0.0.1',
-        functions: [{
-                functionId: 0,
-                name: 'HelloWorld',
-                functionType: proto.qlik.sse.FunctionType.SCALAR,
-                returnType: proto.qlik.sse.DataType.STRING,
-                params: [{
-                    name: 'str1',
-                    dataType: proto.qlik.sse.DataType.STRING
-                }]
-            },
-            {
-                functionId: 1,
-                name: 'AESEncryptData',
-                functionType: proto.qlik.sse.FunctionType.SCALAR,
-                returnType: proto.qlik.sse.DataType.STRING,
-                params: [{
-                    name: 'str1',
-                    dataType: proto.qlik.sse.DataType.STRING
-                }]
-            },
-            {
-                functionId: 2,
-                name: 'AESDecryptData',
-                functionType: proto.qlik.sse.FunctionType.SCALAR,
-                returnType: proto.qlik.sse.DataType.STRING,
-                params: [{
-                    name: 'str1',
-                    dataType: proto.qlik.sse.DataType.STRING
-                }]
-            },
-            {
-                functionId: 3,
-                name: 'FPEEncryptData',
-                functionType: proto.qlik.sse.FunctionType.SCALAR,
-                returnType: proto.qlik.sse.DataType.STRING,
-                params: [{
-                    name: 'str1',
-                    dataType: proto.qlik.sse.DataType.STRING
-                }]
-            },
-            {
-                functionId: 4,
-                name: 'FPEDecryptData',
-                functionType: proto.qlik.sse.FunctionType.SCALAR,
-                returnType: proto.qlik.sse.DataType.STRING,
-                params: [{
-                    name: 'str1',
-                    dataType: proto.qlik.sse.DataType.STRING
-                }]
-            }
-        ]
-    };
-
     callback(null, capabilities);
 }
 
