@@ -41,7 +41,12 @@ const ExecuteFunction = (call) => {
             rowData = fpeEncryptData(rowData);
         } else if (header.functionId == 4) {
             rowData = fpeDecryptData(rowData);
+        } else if (header.functionId == 5) {
+            rowData = aesEncryptMultiRowData(rowData);
+        } else if (header.functionId == 6) {
+            rowData = aesDecryptMultiRowData(rowData);
         }
+
         call.write(rowData);
     });
     call.on('end', function () {
@@ -108,6 +113,17 @@ const fpeDecryptData = (rowData) => {
         rowData.rows[count].duals[0].numData = 0;
     }
     
+    return rowData;
+}
+
+//AES encryption/decryption of multi-row data
+const aesEncryptMultiRowData = (rowData) => {
+    console.log(rowData);
+    return rowData;
+}
+
+const aesDecryptMultiRowData = (rowData) => {
+    console.log(rowData);
     return rowData;
 }
 
