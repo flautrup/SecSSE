@@ -1,6 +1,6 @@
 //Load modules
 const grpc = require('grpc');
-const protobuf = require("protobufjs");
+const protobuf = require('protobufjs');
 const crypto = require('crypto');
 const fpeCrypto = require('node-fpe');
 var config = require('../config.js');
@@ -8,7 +8,7 @@ var capabilities = require('./capabilities.js')
 
 // load proto model to be able to decode header to determine function called
 var builder = protobuf.loadProtoFile('proto/ServerSideExtension.proto');
-var protoModel = builder.build("qlik.sse");
+var protoModel = builder.build('qlik.sse');
 
 // load proto for grpc service
 const proto = grpc.load('proto/ServerSideExtension.proto');
