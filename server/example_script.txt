@@ -16,6 +16,7 @@ SET MonthNames='jan.;feb.;mars;apr.;maj;juni;juli;aug.;sep.;okt.;nov.;dec.';
 SET LongMonthNames='januari;februari;mars;april;maj;juni;juli;augusti;september;oktober;november;december';
 SET DayNames='mån;tis;ons;tors;fre;lör;sön';
 SET LongDayNames='måndag;tisdag;onsdag;torsdag;fredag;lördag;söndag';
+SET NumericalAbbreviation='3:k;6:M;9:G;12:T;15:P;18:E;21:Z;24:Y;-3:m;-6:μ;-9:n;-12:p;-15:f;-18:a;-21:z;-24:y';
 
 Characters:
 Load Chr(RecNo()+Ord('A')-1) as Alpha, RecNo() as Num autogenerate 26;
@@ -81,3 +82,10 @@ Autogenerate 100
  secSSE.FPEDecryptData(FPEEncCardNbr) as FPECardNbrDecrypted,
  FPECardNbr as OrgCardNbr
  resident FPETransactionsSSE;
+ 
+ //Multi-row test AES test
+ AESMultirowTransactionSSE:
+ Load Field1 as SSEMDim1 Extension secSSE.AESEncryptMultiRowData(Transactions{Dim1});
+
+ AESMultirowTransactionSSEDecrypt:
+ Load Field1 as SSEMDim1Decrypted Extension secSSE.AESDecryptMultiRowData(AESMultirowTransactionSSE{SSEMDim1});

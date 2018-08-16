@@ -1,3 +1,5 @@
+//Todo: Don't need seperate functions. Instead have versions that both work with multi-row and single row.
+
 //Load modules
 const grpc = require('grpc');
 const protobuf = require('protobufjs');
@@ -119,11 +121,30 @@ const fpeDecryptData = (rowData) => {
 //AES encryption/decryption of multi-row data
 const aesEncryptMultiRowData = (rowData) => {
     console.log(rowData);
+    for (count = 0; count < rowData.rows.length; count++) {
+        let cipher = crypto.createCipher(config.algorithm, config.key);
+        let encrypted = cipher.update(rowData.rows[count].duals[0].strData, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        //console.log(encrypted);
+
+        rowData.rows[count].duals[0].strData = encrypted;
+        rowData.rows[count].duals[0].numData = 0;
+    }
+
     return rowData;
 }
 
 const aesDecryptMultiRowData = (rowData) => {
     console.log(rowData);
+    for (count = 0; count < rowData.rows.length; count++) {
+        let decipher = crypto.createDecipher(config.algorithm, config.key);
+        let decrypted = decipher.update(rowData.rows[count].duals[0].strData, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        //console.log(decrypted);
+
+        rowData.rows[count].duals[0].strData = decrypted;
+        rowData.rows[count].duals[0].numData = 0;
+    }
     return rowData;
 }
 
