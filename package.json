@@ -1,5 +1,5 @@
 {
-  "name": "SecSSE",
+  "name": "secsse",
   "description": "Expose security functionality through SSE",
   "version": "0.0.1",
   "private": true,

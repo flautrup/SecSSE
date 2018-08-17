@@ -16,6 +16,7 @@ SET MonthNames='jan.;feb.;mars;apr.;maj;juni;juli;aug.;sep.;okt.;nov.;dec.';
 SET LongMonthNames='januari;februari;mars;april;maj;juni;juli;augusti;september;oktober;november;december';
 SET DayNames='mån;tis;ons;tors;fre;lör;sön';
 SET LongDayNames='måndag;tisdag;onsdag;torsdag;fredag;lördag;söndag';
+SET NumericalAbbreviation='3:k;6:M;9:G;12:T;15:P;18:E;21:Z;24:Y;-3:m;-6:μ;-9:n;-12:p;-15:f;-18:a;-21:z;-24:y';
 
 Characters:
 Load Chr(RecNo()+Ord('A')-1) as Alpha, RecNo() as Num autogenerate 26;
@@ -51,6 +52,9 @@ Autogenerate 100
  
  
  //AES test
+ TimeLog:
+    LOAD Now() as LogTime, 'StartAESEnc' as LogStatus AUTOGENERATE(1);
+
  AESTransactionsSSE:
  Load 
  Dim1 as SSEDim1,
@@ -60,20 +64,40 @@ Autogenerate 100
  secSSE.AESEncryptData(Dim1) as AESEncDim1
  resident Transactions;
  
+TimeLog:
+    LOAD Now() as LogTime, 'StopAESEnc' as LogStatus AUTOGENERATE(1);
+ 
+ TimeLog:
+    LOAD Now() as LogTime, 'StartAESDec' as LogStatus AUTOGENERATE(1);
+
  AESTransactionSSEDecrypt:
  Load
  AESEncDim1 as EncTmpDim1,
  secSSE.AESDecryptData(AESEncDim1) as AESDim1Decrypted,
  SSEDim1 as OrgDim1
  resident AESTransactionsSSE;
- 
+
+  TimeLog:
+    LOAD Now() as LogTime, 'StopAESDec' as LogStatus AUTOGENERATE(1);
+
  
  //FPE
+
+  TimeLog:
+    LOAD Now() as LogTime, 'StartFPEEnc' as LogStatus AUTOGENERATE(1);
+
  FPETransactionsSSE:
  Load 
  CardNbr as FPECardNbr,
  secSSE.FPEEncryptData(CardNbr) as FPEEncCardNbr
  resident Transactions;
+ 
+  TimeLog:
+    LOAD Now() as LogTime, 'StopFPEEnc' as LogStatus AUTOGENERATE(1);
+
+ TimeLog:
+    LOAD Now() as LogTime, 'StartFPEDec' as LogStatus AUTOGENERATE(1);
+
  
  FPETransactionSSEDecrypt:
  Load
@@ -81,3 +105,57 @@ Autogenerate 100
  secSSE.FPEDecryptData(FPEEncCardNbr) as FPECardNbrDecrypted,
  FPECardNbr as OrgCardNbr
  resident FPETransactionsSSE;
+
+  TimeLog:
+    LOAD Now() as LogTime, 'StopFPEDec' as LogStatus AUTOGENERATE(1);
+
+ 
+ //Multi-row test AES test
+  TimeLog:
+    LOAD Now() as LogTime, 'StartAESEncMulti' as LogStatus AUTOGENERATE(1);
+
+ AESMultirowTransactionSSE:
+ Load
+ Field1 as SSEMDim1 
+ Extension secSSE.AESEncryptData(Transactions{Dim1});
+
+ TimeLog:
+    LOAD Now() as LogTime, 'StopAESEncMulti' as LogStatus AUTOGENERATE(1);
+
+TimeLog:
+    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+
+ AESMultirowTransactionSSEDecrypt:
+ Load
+ Field1 as SSEMDim1Decrypted 
+ Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMDim1});
+
+ TimeLog:
+    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+
+ 
+ //Multi-row test FPE
+TimeLog:
+    LOAD Now() as LogTime, 'StartFPEEncMulti' as LogStatus AUTOGENERATE(1);
+
+
+ FPEMultirowTransactionSSE:
+ Load
+ Field1 as SSEMFPECardNbr, 
+ Extension secSSE.FPEEncryptData(Transactions{CardNbr});
+
+ TimeLog:
+    LOAD Now() as LogTime, 'StopFPEEncMulti' as LogStatus AUTOGENERATE(1);
+
+
+TimeLog:
+    LOAD Now() as LogTime, 'StartFPEDecMulti' as LogStatus AUTOGENERATE(1);
+
+
+ FPEMultirowTransactionSSEDecrypt:
+ Load 
+ Field1 as SSEMFPECardNbrDecrypted 
+ Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr});
+ 
+ TimeLog:
+    LOAD Now() as LogTime, 'StopFPEDecMulti' as LogStatus AUTOGENERATE(1);

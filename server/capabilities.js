@@ -22,7 +22,7 @@ capabilities = {
             {
                 functionId: 1,
                 name: 'AESEncryptData',
-                functionType: proto.FunctionType.SCALAR,
+                functionType: proto.FunctionType.TENSOR,
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
@@ -32,7 +32,7 @@ capabilities = {
             {
                 functionId: 2,
                 name: 'AESDecryptData',
-                functionType: proto.FunctionType.SCALAR,
+                functionType: proto.FunctionType.TENSOR,
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
@@ -42,7 +42,7 @@ capabilities = {
             {
                 functionId: 3,
                 name: 'FPEEncryptData',
-                functionType: proto.FunctionType.SCALAR,
+                functionType: proto.FunctionType.TENSOR,
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
@@ -52,7 +52,7 @@ capabilities = {
             {
                 functionId: 4,
                 name: 'FPEDecryptData',
-                functionType: proto.FunctionType.SCALAR,
+                functionType: proto.FunctionType.TENSOR,
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
