@@ -5,7 +5,7 @@ This is an example/PoC to show how server side extensions can be used to extend 
  * AES Encryption/Decryption function
  * Format preserving encryption/decryption
 
-Future enhancement cound be to surface 
+## Future enhancement 
  * Industry hash function
 
  ## Installation:
@@ -28,6 +28,8 @@ Debug information can be found in the engine logs.
 
 Next step now is to use it. Easiest way to test is to create an app and use the script supplied in example_script.txt to test out the functionality.
 
+## Updates
+   * Added support for getting multiple rows from the script. This improves performance considerable for larger data sets.
 
 
 
