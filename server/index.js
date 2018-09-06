@@ -1,3 +1,5 @@
+// Todo: fix so that when encrypting multi-row you send in a key as well so that it can be associated with the data
+
 //Load modules
 const grpc = require('grpc');
 const protobuf = require('protobufjs');
