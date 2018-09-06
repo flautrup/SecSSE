@@ -53,9 +53,7 @@ Autogenerate 100;
 
  AESTransactionsSSE:
  Load 
- Secret1,
- Data1 as AESEncData1,
- Data2 as AESEncData2,
+ Key,
  secSSE.HelloWorld(Data1) as HW,
  secSSE.AESEncryptData(Secret1,'') as AESEncSecret1
  resident Transactions;
@@ -68,9 +66,8 @@ TimeLog:
 
  AESTransactionSSEDecrypt:
  Load
- AESEncSecret1 as EncTmpSecret1,
- secSSE.AESDecryptData(AESEncSecret1,'') as AESSecret1Decrypted,
- Secret1 as OrgSecret1
+ Key,
+ secSSE.AESDecryptData(AESEncSecret1,'') as AESSecret1Decrypted
  resident AESTransactionsSSE;
 
   TimeLog:
@@ -84,6 +81,7 @@ TimeLog:
 
  FPETransactionsSSE:
  Load 
+ Key,
  CardNbr as FPECardNbr,
  secSSE.FPEEncryptData(CardNbr, '') as FPEEncCardNbr
  resident Transactions;
@@ -97,9 +95,8 @@ TimeLog:
  
  FPETransactionSSEDecrypt:
  Load
- FPEEncCardNbr,
- secSSE.FPEDecryptData(FPEEncCardNbr, '') as FPECardNbrDecrypted,
- FPECardNbr as OrgCardNbr
+ Key,
+ secSSE.FPEDecryptData(FPEEncCardNbr, '') as FPECardNbrDecrypted
  resident FPETransactionsSSE;
 
   TimeLog:
@@ -113,7 +110,7 @@ TimeLog:
  AESMultirowTransactionSSE:
  Load
  Field1 as SSEMSecret1Enc, 
- Field2 as SSEMKey
+ Field2 as Key
  Extension secSSE.AESEncryptData(Transactions{Secret1, Key});
 
  TimeLog:
@@ -125,8 +122,8 @@ TimeLog:
  AESMultirowTransactionSSEDecrypt:
  Load
  Field1 as SSEMSecret1Decrypted,
- Field2 as SSEMKey
- Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMSecret1Enc, SSEMKey});
+ Field2 as Key
+ Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMSecret1Enc, Key});
 
  TimeLog:
     LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
@@ -140,7 +137,7 @@ TimeLog:
  FPEMultirowTransactionSSE:
  Load
  Field1 as SSEMFPECardNbr, 
- Field2 as SSEMFPEKey
+ Field2 as Key
  Extension secSSE.FPEEncryptData(Transactions{CardNbr, Key});
 
  TimeLog:
@@ -154,8 +151,8 @@ TimeLog:
  FPEMultirowTransactionSSEDecrypt:
  Load 
  Field1 as SSEMFPECardNbrDecrypted, 
- Field2 as SSEMFPEKey
- Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr, SSEMFPEKey});
+ Field2 as Key
+ Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr, Key});
  
  TimeLog:
     LOAD Now() as LogTime, 'StopFPEDecMulti' as LogStatus AUTOGENERATE(1);
