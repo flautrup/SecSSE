@@ -41,7 +41,10 @@ const ExecuteFunction = (call) => {
             rowData = fpeEncryptData(rowData);
         } else if (header.functionId == 4) {
             rowData = fpeDecryptData(rowData);
+        } else if (header.functionId == 5) {
+            rowData = sha256HashData(rowData)
         }
+
 
         call.write(rowData);
     });
@@ -62,6 +65,22 @@ const helloWorld = (rowData) => {
     }
     return rowData;
 }
+
+//SHA256 hash
+const sha256HashData = (rowData) => {
+    for (count = 0; count < rowData.rows.length; count++) {
+        let hash = crypto.createHash('sha256');
+        hash.update(rowData.rows[count].duals[0].strData);
+        let digest = hash.digest('hex');
+        //console.log(encrypted);
+
+        rowData.rows[count].duals[0].strData = digest;
+        rowData.rows[count].duals[0].numData = 0;
+    }
+
+    return rowData;
+}
+
 
 //AES encryption/decryption
 const aesEncryptData = (rowData) => {

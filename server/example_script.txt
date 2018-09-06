@@ -45,11 +45,11 @@ Load
  Rand() as Rand1,
  IterNo() as TransLineID,
  RecNo() as Key
-Autogenerate 100;
+Autogenerate 1000;
  
  //AES test
  TimeLog:
-    LOAD Now() as LogTime, 'StartAESEnc' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESEnc' as LogStatus AUTOGENERATE(1);
 
  AESTransactionsSSE:
  Load 
@@ -59,10 +59,10 @@ Autogenerate 100;
  resident Transactions;
  
 TimeLog:
-    LOAD Now() as LogTime, 'StopAESEnc' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESEnc' as LogStatus AUTOGENERATE(1);
  
- TimeLog:
-    LOAD Now() as LogTime, 'StartAESDec' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'AESDec' as LogStatus AUTOGENERATE(1);
 
  AESTransactionSSEDecrypt:
  Load
@@ -71,13 +71,13 @@ TimeLog:
  resident AESTransactionsSSE;
 
   TimeLog:
-    LOAD Now() as LogTime, 'StopAESDec' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESDec' as LogStatus AUTOGENERATE(1);
 
  
  //FPE
 
-  TimeLog:
-    LOAD Now() as LogTime, 'StartFPEEnc' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'FPEEnc' as LogStatus AUTOGENERATE(1);
 
  FPETransactionsSSE:
  Load 
@@ -86,11 +86,11 @@ TimeLog:
  secSSE.FPEEncryptData(CardNbr, '') as FPEEncCardNbr
  resident Transactions;
  
-  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEEnc' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'FPEEnc' as LogStatus AUTOGENERATE(1);
 
  TimeLog:
-    LOAD Now() as LogTime, 'StartFPEDec' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDec' as LogStatus AUTOGENERATE(1);
 
  
  FPETransactionSSEDecrypt:
@@ -99,13 +99,13 @@ TimeLog:
  secSSE.FPEDecryptData(FPEEncCardNbr, '') as FPECardNbrDecrypted
  resident FPETransactionsSSE;
 
-  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEDec' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'FPEDec' as LogStatus AUTOGENERATE(1);
 
  
  //Multi-row test AES test
-  TimeLog:
-    LOAD Now() as LogTime, 'StartAESEncMulti' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'AESEncMulti' as LogStatus AUTOGENERATE(1);
 
  AESMultirowTransactionSSE:
  Load
@@ -113,11 +113,11 @@ TimeLog:
  Field2 as Key
  Extension secSSE.AESEncryptData(Transactions{Secret1, Key});
 
- TimeLog:
-    LOAD Now() as LogTime, 'StopAESEncMulti' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'AESEncMulti' as LogStatus AUTOGENERATE(1);
 
 TimeLog:
-    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESDecMulti' as LogStatus AUTOGENERATE(1);
 
  AESMultirowTransactionSSEDecrypt:
  Load
@@ -125,13 +125,13 @@ TimeLog:
  Field2 as Key
  Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMSecret1Enc, Key});
 
- TimeLog:
-    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'AESDecMulti' as LogStatus AUTOGENERATE(1);
 
  
  //Multi-row test FPE
 TimeLog:
-    LOAD Now() as LogTime, 'StartFPEEncMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEEncMulti' as LogStatus AUTOGENERATE(1);
 
 
  FPEMultirowTransactionSSE:
@@ -141,11 +141,11 @@ TimeLog:
  Extension secSSE.FPEEncryptData(Transactions{CardNbr, Key});
 
  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEEncMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEEncMulti' as LogStatus AUTOGENERATE(1);
 
 
 TimeLog:
-    LOAD Now() as LogTime, 'StartFPEDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDecMulti' as LogStatus AUTOGENERATE(1);
 
 
  FPEMultirowTransactionSSEDecrypt:
@@ -155,4 +155,22 @@ TimeLog:
  Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr, Key});
  
  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDecMulti' as LogStatus AUTOGENERATE(1);
+
+
+TimelogOrg:
+Load
+RecNo() as id,
+if(Previous(LogStatus)=LogStatus,LogTime-Previous(LogTime),0) as ExecutionTime,
+LogStatus
+resident TimeLog;
+
+Drop table TimeLog; 
+
+TimeLog:
+Load 
+ExecutionTime,
+LogStatus
+resident TimelogOrg where ExecutionTime >0 ;
+
+Drop table TimelogOrg;
