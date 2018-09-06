@@ -32,11 +32,11 @@ autogenerate 255
 Transactions:
 Load
  TransLineID, 
- TransID,
- mod(TransID,26)+1 as Num,
- Pick(Ceil(3*Rand1),'A','B','C') as Dim1,
- Pick(Ceil(6*Rand1),'a','b','c','d','e','f') as Dim2,
- Pick(Ceil(3*Rand()),'X','Y','Z') as Dim3,
+ Key,
+ mod(Key,26)+1 as Num,
+ Pick(Ceil(3*Rand1),'A','B','C') as Secret1,
+ Pick(Ceil(6*Rand1),'a','b','c','d','e','f') as Data1,
+ Pick(Ceil(3*Rand()),'X','Y','Z') as Data2,
  Round(1000*Rand()*Rand()*Rand1) as Expression1,
  Round(  10*Rand()*Rand()*Rand1) as Expression2,
  Round(Rand()*Rand1,0.00001) as Expression3,
@@ -44,12 +44,8 @@ Load
 Load 
  Rand() as Rand1,
  IterNo() as TransLineID,
- RecNo() as TransID
-Autogenerate 100
- While Rand()<=0.5 or IterNo()=1;
-
- Comment Field Dim1 With "This is a field comment";
- 
+ RecNo() as Key
+Autogenerate 100;
  
  //AES test
  TimeLog:
@@ -57,11 +53,11 @@ Autogenerate 100
 
  AESTransactionsSSE:
  Load 
- Dim1 as SSEDim1,
- Dim2 as SSEDim2,
- Dim3 as SSEDim3,
- secSSE.HelloWorld(Dim1) as HW,
- secSSE.AESEncryptData(Dim1) as AESEncDim1
+ Secret1,
+ Data1 as AESEncData1,
+ Data2 as AESEncData2,
+ secSSE.HelloWorld(Data1) as HW,
+ secSSE.AESEncryptData(Secret1,'') as AESEncSecret1
  resident Transactions;
  
 TimeLog:
@@ -72,9 +68,9 @@ TimeLog:
 
  AESTransactionSSEDecrypt:
  Load
- AESEncDim1 as EncTmpDim1,
- secSSE.AESDecryptData(AESEncDim1) as AESDim1Decrypted,
- SSEDim1 as OrgDim1
+ AESEncSecret1 as EncTmpSecret1,
+ secSSE.AESDecryptData(AESEncSecret1,'') as AESSecret1Decrypted,
+ Secret1 as OrgSecret1
  resident AESTransactionsSSE;
 
   TimeLog:
@@ -89,7 +85,7 @@ TimeLog:
  FPETransactionsSSE:
  Load 
  CardNbr as FPECardNbr,
- secSSE.FPEEncryptData(CardNbr) as FPEEncCardNbr
+ secSSE.FPEEncryptData(CardNbr, '') as FPEEncCardNbr
  resident Transactions;
  
   TimeLog:
@@ -102,7 +98,7 @@ TimeLog:
  FPETransactionSSEDecrypt:
  Load
  FPEEncCardNbr,
- secSSE.FPEDecryptData(FPEEncCardNbr) as FPECardNbrDecrypted,
+ secSSE.FPEDecryptData(FPEEncCardNbr, '') as FPECardNbrDecrypted,
  FPECardNbr as OrgCardNbr
  resident FPETransactionsSSE;
 
@@ -116,9 +112,9 @@ TimeLog:
 
  AESMultirowTransactionSSE:
  Load
- Field1 as SSEMDim1, 
- Field2 as SSEMDim1Key
- Extension secSSE.AESEncryptData(Transactions{Dim1, Dim2});
+ Field1 as SSEMSecret1Enc, 
+ Field2 as SSEMKey
+ Extension secSSE.AESEncryptData(Transactions{Secret1, Key});
 
  TimeLog:
     LOAD Now() as LogTime, 'StopAESEncMulti' as LogStatus AUTOGENERATE(1);
@@ -128,9 +124,9 @@ TimeLog:
 
  AESMultirowTransactionSSEDecrypt:
  Load
- Field1 as SSEMDim1Decrypted,
- Field2 as SSEMDim1Key
- Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMDim1, SSEMDim1Key});
+ Field1 as SSEMSecret1Decrypted,
+ Field2 as SSEMKey
+ Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMSecret1Enc, SSEMKey});
 
  TimeLog:
     LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
@@ -143,8 +139,9 @@ TimeLog:
 
  FPEMultirowTransactionSSE:
  Load
- Field1 as SSEMFPECardNbr 
- Extension secSSE.FPEEncryptData(Transactions{CardNbr});
+ Field1 as SSEMFPECardNbr, 
+ Field2 as SSEMFPEKey
+ Extension secSSE.FPEEncryptData(Transactions{CardNbr, Key});
 
  TimeLog:
     LOAD Now() as LogTime, 'StopFPEEncMulti' as LogStatus AUTOGENERATE(1);
@@ -156,8 +153,9 @@ TimeLog:
 
  FPEMultirowTransactionSSEDecrypt:
  Load 
- Field1 as SSEMFPECardNbrDecrypted 
- Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr});
+ Field1 as SSEMFPECardNbrDecrypted, 
+ Field2 as SSEMFPEKey
+ Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr, SSEMFPEKey});
  
  TimeLog:
     LOAD Now() as LogTime, 'StopFPEDecMulti' as LogStatus AUTOGENERATE(1);
