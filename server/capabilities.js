@@ -27,6 +27,9 @@ capabilities = {
                 params: [{
                     name: 'str1',
                     dataType: proto.DataType.STRING
+                }, {
+                    name: 'str2',
+                    dataType: proto.DataType.STRING
                 }]
             },
             {
@@ -36,6 +39,9 @@ capabilities = {
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
+                    dataType: proto.DataType.STRING
+                }, {
+                    name: 'str2',
                     dataType: proto.DataType.STRING
                 }]
             },
@@ -47,6 +53,9 @@ capabilities = {
                 params: [{
                     name: 'str1',
                     dataType: proto.DataType.STRING
+                }, {
+                    name: 'str2',
+                    dataType: proto.DataType.STRING
                 }]
             },
             {
@@ -56,6 +65,22 @@ capabilities = {
                 returnType: proto.DataType.STRING,
                 params: [{
                     name: 'str1',
+                    dataType: proto.DataType.STRING
+                }, {
+                    name: 'str2',
+                    dataType: proto.DataType.STRING
+                }]
+            },
+            {
+                functionId: 5,
+                name: 'SHA256HashData',
+                functionType: proto.FunctionType.TENSOR,
+                returnType: proto.DataType.STRING,
+                params: [{
+                    name: 'str1',
+                    dataType: proto.DataType.STRING
+                }, {
+                    name: 'str2',
                     dataType: proto.DataType.STRING
                 }]
             }

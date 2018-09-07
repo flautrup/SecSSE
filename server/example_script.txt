@@ -32,11 +32,11 @@ autogenerate 255
 Transactions:
 Load
  TransLineID, 
- TransID,
- mod(TransID,26)+1 as Num,
- Pick(Ceil(3*Rand1),'A','B','C') as Dim1,
- Pick(Ceil(6*Rand1),'a','b','c','d','e','f') as Dim2,
- Pick(Ceil(3*Rand()),'X','Y','Z') as Dim3,
+ Key,
+ mod(Key,26)+1 as Num,
+ Pick(Ceil(3*Rand1),'A','B','C') as Secret1,
+ Pick(Ceil(6*Rand1),'a','b','c','d','e','f') as Data1,
+ Pick(Ceil(3*Rand()),'X','Y','Z') as Data2,
  Round(1000*Rand()*Rand()*Rand1) as Expression1,
  Round(  10*Rand()*Rand()*Rand1) as Expression2,
  Round(Rand()*Rand1,0.00001) as Expression3,
@@ -44,118 +44,133 @@ Load
 Load 
  Rand() as Rand1,
  IterNo() as TransLineID,
- RecNo() as TransID
-Autogenerate 100
- While Rand()<=0.5 or IterNo()=1;
-
- Comment Field Dim1 With "This is a field comment";
- 
+ RecNo() as Key
+Autogenerate 1000;
  
  //AES test
  TimeLog:
-    LOAD Now() as LogTime, 'StartAESEnc' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESEnc' as LogStatus AUTOGENERATE(1);
 
  AESTransactionsSSE:
  Load 
- Dim1 as SSEDim1,
- Dim2 as SSEDim2,
- Dim3 as SSEDim3,
- secSSE.HelloWorld(Dim1) as HW,
- secSSE.AESEncryptData(Dim1) as AESEncDim1
+ Key,
+ secSSE.HelloWorld(Data1) as HW,
+ secSSE.AESEncryptData(Secret1,'') as AESEncSecret1
  resident Transactions;
  
 TimeLog:
-    LOAD Now() as LogTime, 'StopAESEnc' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESEnc' as LogStatus AUTOGENERATE(1);
  
- TimeLog:
-    LOAD Now() as LogTime, 'StartAESDec' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'AESDec' as LogStatus AUTOGENERATE(1);
 
  AESTransactionSSEDecrypt:
  Load
- AESEncDim1 as EncTmpDim1,
- secSSE.AESDecryptData(AESEncDim1) as AESDim1Decrypted,
- SSEDim1 as OrgDim1
+ Key,
+ secSSE.AESDecryptData(AESEncSecret1,'') as AESSecret1Decrypted
  resident AESTransactionsSSE;
 
   TimeLog:
-    LOAD Now() as LogTime, 'StopAESDec' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESDec' as LogStatus AUTOGENERATE(1);
 
  
  //FPE
 
-  TimeLog:
-    LOAD Now() as LogTime, 'StartFPEEnc' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'FPEEnc' as LogStatus AUTOGENERATE(1);
 
  FPETransactionsSSE:
  Load 
+ Key,
  CardNbr as FPECardNbr,
- secSSE.FPEEncryptData(CardNbr) as FPEEncCardNbr
+ secSSE.FPEEncryptData(CardNbr, '') as FPEEncCardNbr
  resident Transactions;
  
-  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEEnc' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'FPEEnc' as LogStatus AUTOGENERATE(1);
 
  TimeLog:
-    LOAD Now() as LogTime, 'StartFPEDec' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDec' as LogStatus AUTOGENERATE(1);
 
  
  FPETransactionSSEDecrypt:
  Load
- FPEEncCardNbr,
- secSSE.FPEDecryptData(FPEEncCardNbr) as FPECardNbrDecrypted,
- FPECardNbr as OrgCardNbr
+ Key,
+ secSSE.FPEDecryptData(FPEEncCardNbr, '') as FPECardNbrDecrypted
  resident FPETransactionsSSE;
 
-  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEDec' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'FPEDec' as LogStatus AUTOGENERATE(1);
 
  
  //Multi-row test AES test
-  TimeLog:
-    LOAD Now() as LogTime, 'StartAESEncMulti' as LogStatus AUTOGENERATE(1);
+ TimeLog:
+    LOAD Now() as LogTime, 'AESEncMulti' as LogStatus AUTOGENERATE(1);
 
  AESMultirowTransactionSSE:
  Load
- Field1 as SSEMDim1 
- Extension secSSE.AESEncryptData(Transactions{Dim1});
-
- TimeLog:
-    LOAD Now() as LogTime, 'StopAESEncMulti' as LogStatus AUTOGENERATE(1);
+ Field1 as SSEMSecret1Enc, 
+ Field2 as Key
+ Extension secSSE.AESEncryptData(Transactions{Secret1, Key});
 
 TimeLog:
-    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'AESEncMulti' as LogStatus AUTOGENERATE(1);
+
+TimeLog:
+    LOAD Now() as LogTime, 'AESDecMulti' as LogStatus AUTOGENERATE(1);
 
  AESMultirowTransactionSSEDecrypt:
  Load
- Field1 as SSEMDim1Decrypted 
- Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMDim1});
+ Field1 as SSEMSecret1Decrypted,
+ Field2 as Key
+ Extension secSSE.AESDecryptData(AESMultirowTransactionSSE{SSEMSecret1Enc, Key});
 
- TimeLog:
-    LOAD Now() as LogTime, 'StartAESDecMulti' as LogStatus AUTOGENERATE(1);
+TimeLog:
+    LOAD Now() as LogTime, 'AESDecMulti' as LogStatus AUTOGENERATE(1);
 
  
  //Multi-row test FPE
 TimeLog:
-    LOAD Now() as LogTime, 'StartFPEEncMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEEncMulti' as LogStatus AUTOGENERATE(1);
 
 
  FPEMultirowTransactionSSE:
  Load
  Field1 as SSEMFPECardNbr, 
- Extension secSSE.FPEEncryptData(Transactions{CardNbr});
+ Field2 as Key
+ Extension secSSE.FPEEncryptData(Transactions{CardNbr, Key});
 
  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEEncMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEEncMulti' as LogStatus AUTOGENERATE(1);
 
 
 TimeLog:
-    LOAD Now() as LogTime, 'StartFPEDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDecMulti' as LogStatus AUTOGENERATE(1);
 
 
  FPEMultirowTransactionSSEDecrypt:
  Load 
- Field1 as SSEMFPECardNbrDecrypted 
- Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr});
+ Field1 as SSEMFPECardNbrDecrypted, 
+ Field2 as Key
+ Extension secSSE.FPEDecryptData(FPEMultirowTransactionSSE{SSEMFPECardNbr, Key});
  
  TimeLog:
-    LOAD Now() as LogTime, 'StopFPEDecMulti' as LogStatus AUTOGENERATE(1);
+    LOAD Now() as LogTime, 'FPEDecMulti' as LogStatus AUTOGENERATE(1);
+
+
+TimelogOrg:
+Load
+RecNo() as id,
+if(Previous(LogStatus)=LogStatus,LogTime-Previous(LogTime),0) as ExecutionTime,
+LogStatus
+resident TimeLog;
+
+Drop table TimeLog; 
+
+TimeLog:
+Load 
+ExecutionTime,
+LogStatus
+resident TimelogOrg where ExecutionTime >0 ;
+
+Drop table TimelogOrg;
