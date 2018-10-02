@@ -4,8 +4,6 @@
 This is an example/PoC to show how server side extensions can be used to extend the scripting of Qlik Sense with aditional security functions to protect customer information. This is done with a Analytic Extension that will surface security functions to Qlik Sense to be used in scripts and expressions to protect data. Examples of functions exposed is
  * AES Encryption/Decryption function
  * Format preserving encryption/decryption
-
-## Future enhancement 
  * Industry hash function
 
  ## Installation:
